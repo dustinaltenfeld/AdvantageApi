@@ -8,5 +8,7 @@ namespace Advantage.API.Models
      public DbSet<User> Users { get; set;}
      public DbSet<Gender> Genders { get; set;}
      public DbSet<Server> Servers { get; set;}
- }  
+
+    }
+      
 }
