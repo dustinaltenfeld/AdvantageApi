@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Advantage.API.Models;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace Advantage.API.Controllers
 {  [ApiController]
@@ -15,7 +17,7 @@ namespace Advantage.API.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            var data = _ctx.Users.OrderBy(u => u.Id);
+            var data = _ctx.Users.Include(u => u.Gender).OrderBy(u => u.Id);
 
             return Ok(data);
         }
@@ -23,7 +25,7 @@ namespace Advantage.API.Controllers
         [HttpGet("{id}", Name="GetUser")]
         public IActionResult Get(int id)
         {
-            var user = _ctx.Users.Find(id);
+            var user = _ctx.Users.Include(u => u.Gender).SingleOrDefault(u => u.Id == id);
 
             return Ok(user);
         }
@@ -39,5 +41,36 @@ namespace Advantage.API.Controllers
 
             return CreatedAtRoute("GetUser", new {id = user.Id},user);
         }
+        [HttpGet("pagewise/{pageIndex}/{pageSize}")]
+        public IActionResult Get(int pageIndex,int pageSize)
+        {
+            var data = _ctx.Users.Include(u => u.Gender)
+                .OrderBy(u => u.Id);
+            var page = new PaginatedResponse<User>(data, pageIndex,pageSize);
+
+            var totalCount = data.Count();
+            var totalPages = Math.Ceiling((double)totalCount / pageSize);
+
+            var response  = new
+            {
+                Page = page,
+                TotalPages = totalPages
+            };
+            
+            return Ok(response);
+        }
+        [HttpGet("ByGender")]
+        public IActionResult ByGender()
+        {
+            var users = _ctx.Users
+                .Include(u => u.Gender)
+                .Where(u => u.Gender.Name == "male")
+                .OrderBy(u => u.Id)
+                .ToList();
+
+            return Ok(users);
+
+        }   
+
     }
 }
