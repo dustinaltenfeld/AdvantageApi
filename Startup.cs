@@ -30,10 +30,15 @@ namespace Advantage.API
         public void ConfigureServices(IServiceCollection services)
         {   
             _connectionString ="Server=localhost; Port=5432; User Id=pdev; Password=blub; Database=Advantage.API.Dev; Integrated Security = true; Pooling = true; ";// Configuration["secretConnectionString"];
-            /*services.AddCors( opt => {
-                opt.AddPolicy("CorsPolicy",
-                c => c.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
-            });*/
+            
+            services.AddCors( opt => 
+                {
+                    opt.AddPolicy("CorsPolicy",
+                    c => c.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader());
+                })
+                ;
             services.AddControllers();
             services.AddEntityFrameworkNpgsql()
             .AddDbContext<ApiContext>(
@@ -46,10 +51,11 @@ namespace Advantage.API
         {
             if (env.IsDevelopment())
             {
+                app.UseCors("CorsPolicy");
                 app.UseDeveloperExceptionPage();
-                /*app.UseCors("CorsePolice");*/
+                
             }
-            
+            app.UseCors("CorsPolicy");
             seed.SeedData(40);
 
             app.UseHttpsRedirection();
@@ -62,6 +68,7 @@ namespace Advantage.API
             {
                 endpoints.MapControllers();
                 endpoints.MapControllerRoute("default", "api/{controller}/{action}/{id?}");
+                endpoints.MapControllers().RequireCors("CorsPolicy");
             });
             
         }
